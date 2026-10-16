@@ -1,0 +1,50 @@
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# Xcode user-specific files
+xcuserdata/
+*.xcuserstate
+*.xcscmblueprint
+*.xccheckout
+
+# Build output
+build/
+DerivedData/
+*.moved-aside
+*.hmap
+*.ipa
+*.dSYM.zip
+*.dSYM
+
+# Swift Package Manager
+.build/
+.swiftpm/
+# Keep Package.resolved committed so everyone gets the same dependency versions
+
+# Playgrounds
+timeline.xctimeline
+playground.xcworkspace
+
+# Test and coverage output
+*.xcresult
+*.profraw
+*.profdata
+
+# Fastlane (if used later for screenshots)
+fastlane/report.xml
+fastlane/Preview.html
+fastlane/screenshots/**/*.png
+fastlane/test_output
+
+# Editors
+.vscode/
+.idea/
+*.swp
+*~
+
+# Secrets and local config (never commit these)
+*.xcconfig.local
+.env
