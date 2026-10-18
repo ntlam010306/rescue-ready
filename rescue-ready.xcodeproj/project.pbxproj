@@ -6,6 +6,12 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		3753414E30856D0A00F043C9 /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3753414D30856D0A00F043C9 /* WidgetKit.framework */; };
+		3753415030856D0A00F043C9 /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3753414F30856D0A00F043C9 /* SwiftUI.framework */; };
+		3753415B30856D0B00F043C9 /* RescueReadyWidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 3753414B30856D0A00F043C9 /* RescueReadyWidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		3753411A3082D67500F043C9 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -21,13 +27,48 @@
 			remoteGlobalIDString = 375341063082D67200F043C9;
 			remoteInfo = "rescue-ready";
 		};
+		3753415930856D0B00F043C9 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 375340FF3082D67200F043C9 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 3753414A30856D0A00F043C9;
+			remoteInfo = RescueReadyWidgetExtension;
+		};
 /* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		3753416030856D0B00F043C9 /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				3753415B30856D0B00F043C9 /* RescueReadyWidgetExtension.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
 		375341073082D67200F043C9 /* rescue-ready.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "rescue-ready.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		375341193082D67500F043C9 /* rescue-readyTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "rescue-readyTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 		375341233082D67500F043C9 /* rescue-readyUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "rescue-readyUITests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
+		3753414B30856D0A00F043C9 /* RescueReadyWidgetExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = RescueReadyWidgetExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		3753414D30856D0A00F043C9 /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
+		3753414F30856D0A00F043C9 /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
+		3753416230856DBE00F043C9 /* RescueReadyWidgetExtension.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = RescueReadyWidgetExtension.entitlements; sourceTree = "<group>"; };
 /* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		3753415C30856D0B00F043C9 /* Exceptions for "RescueReadyWidget" folder in "RescueReadyWidgetExtension" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 3753414A30856D0A00F043C9 /* RescueReadyWidgetExtension */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		375341093082D67200F043C9 /* rescue-ready */ = {
@@ -43,6 +84,14 @@
 		375341263082D67500F043C9 /* rescue-readyUITests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = "rescue-readyUITests";
+			sourceTree = "<group>";
+		};
+		3753415130856D0A00F043C9 /* RescueReadyWidget */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				3753415C30856D0B00F043C9 /* Exceptions for "RescueReadyWidget" folder in "RescueReadyWidgetExtension" target */,
+			);
+			path = RescueReadyWidget;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -69,15 +118,27 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		3753414830856D0A00F043C9 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				3753415030856D0A00F043C9 /* SwiftUI.framework in Frameworks */,
+				3753414E30856D0A00F043C9 /* WidgetKit.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
 		375340FE3082D67200F043C9 = {
 			isa = PBXGroup;
 			children = (
+				3753416230856DBE00F043C9 /* RescueReadyWidgetExtension.entitlements */,
 				375341093082D67200F043C9 /* rescue-ready */,
 				3753411C3082D67500F043C9 /* rescue-readyTests */,
 				375341263082D67500F043C9 /* rescue-readyUITests */,
+				3753415130856D0A00F043C9 /* RescueReadyWidget */,
+				3753414C30856D0A00F043C9 /* Frameworks */,
 				375341083082D67200F043C9 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -88,8 +149,18 @@
 				375341073082D67200F043C9 /* rescue-ready.app */,
 				375341193082D67500F043C9 /* rescue-readyTests.xctest */,
 				375341233082D67500F043C9 /* rescue-readyUITests.xctest */,
+				3753414B30856D0A00F043C9 /* RescueReadyWidgetExtension.appex */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		3753414C30856D0A00F043C9 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				3753414D30856D0A00F043C9 /* WidgetKit.framework */,
+				3753414F30856D0A00F043C9 /* SwiftUI.framework */,
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -102,10 +173,12 @@
 				375341033082D67200F043C9 /* Sources */,
 				375341043082D67200F043C9 /* Frameworks */,
 				375341053082D67200F043C9 /* Resources */,
+				3753416030856D0B00F043C9 /* Embed Foundation Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				3753415A30856D0B00F043C9 /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				375341093082D67200F043C9 /* rescue-ready */,
@@ -163,6 +236,28 @@
 			productReference = 375341233082D67500F043C9 /* rescue-readyUITests.xctest */;
 			productType = "com.apple.product-type.bundle.ui-testing";
 		};
+		3753414A30856D0A00F043C9 /* RescueReadyWidgetExtension */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 3753415D30856D0B00F043C9 /* Build configuration list for PBXNativeTarget "RescueReadyWidgetExtension" */;
+			buildPhases = (
+				3753414730856D0A00F043C9 /* Sources */,
+				3753414830856D0A00F043C9 /* Frameworks */,
+				3753414930856D0A00F043C9 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				3753415130856D0A00F043C9 /* RescueReadyWidget */,
+			);
+			name = RescueReadyWidgetExtension;
+			packageProductDependencies = (
+			);
+			productName = RescueReadyWidgetExtension;
+			productReference = 3753414B30856D0A00F043C9 /* RescueReadyWidgetExtension.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -184,6 +279,9 @@
 						CreatedOnToolsVersion = 26.2;
 						TestTargetID = 375341063082D67200F043C9;
 					};
+					3753414A30856D0A00F043C9 = {
+						CreatedOnToolsVersion = 26.2;
+					};
 				};
 			};
 			buildConfigurationList = 375341023082D67200F043C9 /* Build configuration list for PBXProject "rescue-ready" */;
@@ -203,6 +301,7 @@
 				375341063082D67200F043C9 /* rescue-ready */,
 				375341183082D67500F043C9 /* rescue-readyTests */,
 				375341223082D67500F043C9 /* rescue-readyUITests */,
+				3753414A30856D0A00F043C9 /* RescueReadyWidgetExtension */,
 			);
 		};
 /* End PBXProject section */
@@ -223,6 +322,13 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		375341213082D67500F043C9 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		3753414930856D0A00F043C9 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -253,6 +359,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		3753414730856D0A00F043C9 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
@@ -265,6 +378,11 @@
 			isa = PBXTargetDependency;
 			target = 375341063082D67200F043C9 /* rescue-ready */;
 			targetProxy = 375341243082D67500F043C9 /* PBXContainerItemProxy */;
+		};
+		3753415A30856D0B00F043C9 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 3753414A30856D0A00F043C9 /* RescueReadyWidgetExtension */;
+			targetProxy = 3753415930856D0B00F043C9 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -322,7 +440,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 26.2;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.6;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
@@ -380,7 +498,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 26.2;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.6;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
@@ -395,6 +513,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = "rescue-ready/rescue-ready.entitlements";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = JKAAPQ2VKD;
@@ -406,7 +525,7 @@
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				IPHONEOS_DEPLOYMENT_TARGET = 17.6;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -429,6 +548,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = "rescue-ready/rescue-ready.entitlements";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = JKAAPQ2VKD;
@@ -440,7 +560,7 @@
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				IPHONEOS_DEPLOYMENT_TARGET = 17.6;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -466,7 +586,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = JKAAPQ2VKD;
 				GENERATE_INFOPLIST_FILE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 26.2;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = "sam.rao.au.rescue-readyTests";
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -488,7 +608,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = JKAAPQ2VKD;
 				GENERATE_INFOPLIST_FILE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 26.2;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = "sam.rao.au.rescue-readyTests";
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -509,6 +629,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = JKAAPQ2VKD;
 				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = "sam.rao.au.rescue-readyUITests";
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -529,6 +650,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = JKAAPQ2VKD;
 				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = "sam.rao.au.rescue-readyUITests";
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -539,6 +661,70 @@
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				TEST_TARGET_NAME = "rescue-ready";
+			};
+			name = Release;
+		};
+		3753415E30856D0B00F043C9 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CODE_SIGN_ENTITLEMENTS = RescueReadyWidgetExtension.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = JKAAPQ2VKD;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = RescueReadyWidget/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = RescueReadyWidget;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "sam.rao.au.rescue-ready.RescueReadyWidget";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		3753415F30856D0B00F043C9 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CODE_SIGN_ENTITLEMENTS = RescueReadyWidgetExtension.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = JKAAPQ2VKD;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = RescueReadyWidget/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = RescueReadyWidget;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "sam.rao.au.rescue-ready.RescueReadyWidget";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Release;
 		};
@@ -577,6 +763,15 @@
 			buildConfigurations = (
 				375341343082D67500F043C9 /* Debug */,
 				375341353082D67500F043C9 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		3753415D30856D0B00F043C9 /* Build configuration list for PBXNativeTarget "RescueReadyWidgetExtension" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				3753415E30856D0B00F043C9 /* Debug */,
+				3753415F30856D0B00F043C9 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
