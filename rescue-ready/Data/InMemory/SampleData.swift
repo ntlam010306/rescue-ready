@@ -3,7 +3,11 @@ import Foundation
 /// Realistic demo data for previews, screenshots and running the app without Core Data.
 enum SampleData {
     /// The volunteer the sample data is recorded against.
-    static let volunteer = Volunteer(id: Identifier(), name: "Priya Sharma")
+    /// Uses a fixed ID so the seeded volunteer still matches after the app relaunches.
+    static let volunteer = Volunteer(
+        id: Identifier(UUID(uuidString: "6F2C8A4E-3B1D-4C7A-9E55-2D8F1A0B7C31") ?? UUID()),
+        name: "Priya Sharma"
+    )
 
     /// A store filled with sample events, drop points, a pickup and batches.
     /// Times are relative to `now` so batches always show realistic time left.
