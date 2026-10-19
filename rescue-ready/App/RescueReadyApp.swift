@@ -1,17 +1,12 @@
-//
-//  rescue_readyApp.swift
-//  rescue-ready
-//
-//  Created by Sumangala Rao on 17/10/2026.
-//
-
 import SwiftUI
 
 @main
 struct RescueReadyApp: App {
+    @State private var container = AppContainer()
+
     var body: some Scene {
         WindowGroup {
-            RootView()
+            RootView(container: container)
         }
     }
 }
