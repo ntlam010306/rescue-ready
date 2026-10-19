@@ -1,9 +1,96 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="1" systemVersion="11A491" minimumToolsVersion="Automatic" sourceLanguage="Swift" usedWithCloudKit="false" userDefinedModelVersionIdentifier="">
-    <entity name="Item" representedClassName="Item" syncable="YES" codeGenerationType="class">
-        <attribute name="timestamp" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+    <entity name="DropPointEntity" representedClassName="DropPointEntity" syncable="YES" codeGenerationType="class">
+        <attribute name="address" attributeType="String" defaultValueString=""/>
+        <attribute name="closeHour" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="id" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="name" attributeType="String" defaultValueString=""/>
+        <attribute name="openHour" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <relationship name="batches" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="FoodBatchEntity" inverseName="dropPoint" inverseEntity="FoodBatchEntity"/>
+        <uniquenessConstraints>
+            <uniquenessConstraint>
+                <constraint value="id"/>
+            </uniquenessConstraint>
+        </uniquenessConstraints>
+    </entity>
+    <entity name="EventEntity" representedClassName="EventEntity" syncable="YES" codeGenerationType="class">
+        <attribute name="endsAt" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="id" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="name" attributeType="String" defaultValueString=""/>
+        <attribute name="startsAt" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="venue" attributeType="String" defaultValueString=""/>
+        <relationship name="pickups" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="PickupEntity" inverseName="event" inverseEntity="PickupEntity"/>
+        <uniquenessConstraints>
+            <uniquenessConstraint>
+                <constraint value="id"/>
+            </uniquenessConstraint>
+        </uniquenessConstraints>
+    </entity>
+    <entity name="FoodBatchEntity" representedClassName="FoodBatchEntity" syncable="YES" codeGenerationType="class">
+        <attribute name="allergensDeclared" attributeType="Boolean" defaultValueString="NO" usesScalarValueType="YES"/>
+        <attribute name="allergensRaw" attributeType="String" defaultValueString=""/>
+        <attribute name="discardReason" optional="YES" attributeType="String"/>
+        <attribute name="foodDescription" attributeType="String" defaultValueString=""/>
+        <attribute name="holdStartedAt" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="id" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="statusRaw" attributeType="String" defaultValueString="awaitingCheck"/>
+        <attribute name="weightKg" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
+        <relationship name="checks" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="SafetyCheckEntity" inverseName="batch" inverseEntity="SafetyCheckEntity"/>
+        <relationship name="dropPoint" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="DropPointEntity" inverseName="batches" inverseEntity="DropPointEntity"/>
+        <relationship name="pickup" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="PickupEntity" inverseName="batches" inverseEntity="PickupEntity"/>
+        <fetchIndex name="byStatusIndex">
+            <fetchIndexElement property="statusRaw" type="Binary" order="ascending"/>
+        </fetchIndex>
+        <fetchIndex name="byHoldStartedAtIndex">
+            <fetchIndexElement property="holdStartedAt" type="Binary" order="ascending"/>
+        </fetchIndex>
+        <uniquenessConstraints>
+            <uniquenessConstraint>
+                <constraint value="id"/>
+            </uniquenessConstraint>
+        </uniquenessConstraints>
+    </entity>
+    <entity name="PickupEntity" representedClassName="PickupEntity" syncable="YES" codeGenerationType="class">
+        <attribute name="collectedAt" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="id" attributeType="UUID" usesScalarValueType="NO"/>
+        <relationship name="batches" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="FoodBatchEntity" inverseName="pickup" inverseEntity="FoodBatchEntity"/>
+        <relationship name="event" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="EventEntity" inverseName="pickups" inverseEntity="EventEntity"/>
+        <relationship name="volunteer" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="VolunteerEntity" inverseName="pickups" inverseEntity="VolunteerEntity"/>
+        <uniquenessConstraints>
+            <uniquenessConstraint>
+                <constraint value="id"/>
+            </uniquenessConstraint>
+        </uniquenessConstraints>
+    </entity>
+    <entity name="SafetyCheckEntity" representedClassName="SafetyCheckEntity" syncable="YES" codeGenerationType="class">
+        <attribute name="checkedAt" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="failureReason" optional="YES" attributeType="String"/>
+        <attribute name="id" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="passed" attributeType="Boolean" defaultValueString="NO" usesScalarValueType="YES"/>
+        <attribute name="temperatureC" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
+        <relationship name="batch" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="FoodBatchEntity" inverseName="checks" inverseEntity="FoodBatchEntity"/>
+        <uniquenessConstraints>
+            <uniquenessConstraint>
+                <constraint value="id"/>
+            </uniquenessConstraint>
+        </uniquenessConstraints>
+    </entity>
+    <entity name="VolunteerEntity" representedClassName="VolunteerEntity" syncable="YES" codeGenerationType="class">
+        <attribute name="id" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="name" attributeType="String" defaultValueString=""/>
+        <relationship name="pickups" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="PickupEntity" inverseName="volunteer" inverseEntity="PickupEntity"/>
+        <uniquenessConstraints>
+            <uniquenessConstraint>
+                <constraint value="id"/>
+            </uniquenessConstraint>
+        </uniquenessConstraints>
     </entity>
     <elements>
-        <element name="Item" positionX="-63" positionY="-18" width="128" height="44"/>
+        <element name="EventEntity" positionX="-450" positionY="-180" width="128" height="119"/>
+        <element name="VolunteerEntity" positionX="-450" positionY="40" width="128" height="74"/>
+        <element name="PickupEntity" positionX="-240" positionY="-120" width="128" height="104"/>
+        <element name="FoodBatchEntity" positionX="-30" positionY="-180" width="128" height="194"/>
+        <element name="SafetyCheckEntity" positionX="180" positionY="-180" width="128" height="119"/>
+        <element name="DropPointEntity" positionX="180" positionY="40" width="128" height="119"/>
     </elements>
 </model>
