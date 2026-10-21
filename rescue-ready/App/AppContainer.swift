@@ -57,6 +57,17 @@ final class AppContainer {
         )
     }
 
+    func makeHandoverViewModel(for batch: FoodBatch) -> HandoverViewModel {
+        HandoverViewModel(
+            batch: batch,
+            handOver: HandOverBatchUseCase(batches: batchRepository, dropPoints: dropPointRepository,
+                                           notifications: notificationScheduler, now: now),
+            discard: DiscardBatchUseCase(batches: batchRepository, notifications: notificationScheduler),
+            fetchDropPoints: FetchDropPointsUseCase(dropPoints: dropPointRepository, now: now),
+            now: now
+        )
+    }
+
     // MARK: - Previews
 
     /// An in-memory container for SwiftUI previews.
