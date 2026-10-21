@@ -60,8 +60,8 @@ final class SafetyCheckViewModel {
             batch = try await recordSafetyCheck.loadBatch(id: batchID)
 
             // Restore existing allergen declaration information.
-            allergensConfirmed = batch?.allergensDeclared ?? false
-
+            allergensConfirmed = false
+            
             loadState = .loaded
         } catch {
             loadState = .failed(Self.message(for: error))

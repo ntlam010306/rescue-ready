@@ -1,0 +1,153 @@
+//
+//  SafetyCheckView.swift
+//  rescue-ready
+//
+//  Created by Lam Nguyen on 21/10/2026.
+//
+
+
+import SwiftUI
+
+/// Displays the safety checklist for a selected food batch.
+struct SafetyCheckView: View {
+
+    @State private var viewModel: SafetyCheckViewModel
+
+    init(viewModel: SafetyCheckViewModel) {
+        _viewModel = State(initialValue: viewModel)
+    }
+
+    var body: some View {
+        content
+            .navigationTitle("Safety Check")
+            .task {
+                await viewModel.load()
+            }
+    }
+
+    @ViewBuilder
+    private var content: some View {
+        switch viewModel.loadState {
+        case .idle, .loading:
+            ProgressView("Loading batch")
+
+        case .failed(let message):
+            ContentUnavailableView {
+                Label(
+                    "Couldn't load batch",
+                    systemImage: "exclamationmark.triangle"
+                )
+            } description: {
+                Text(message)
+            } actions: {
+                Button("Try Again") {
+                    Task { await viewModel.load() }
+                }
+            }
+
+        case .loaded:
+            if let batch = viewModel.batch {
+                safetyForm(for: batch)
+            } else {
+                ContentUnavailableView(
+                    "Batch unavailable",
+                    systemImage: "shippingbox"
+                )
+            }
+        }
+    }
+
+    private func safetyForm(for batch: FoodBatch) -> some View {
+        Form {
+
+            Section("Food Batch") {
+                LabeledContent(
+                    "Food",
+                    value: batch.foodDescription
+                )
+
+                LabeledContent(
+                    "Weight",
+                    value: "\(batch.weight.kilograms.formatted()) kg"
+                )
+
+                StatusBadge(status: batch.status)
+            }
+
+            Section {
+                TextField(
+                    "Temperature (°C)",
+                    text: $viewModel.temperatureInput
+                )
+                .keyboardType(.decimalPad)
+                .accessibilityLabel(
+                    "Measured food temperature in Celsius"
+                )
+            } header: {
+                Text("Temperature Check")
+            } footer: {
+                Text("Enter the measured temperature using a food thermometer.")
+            }
+
+            Section {
+                Text(allergenSummary(for: batch))
+                    .foregroundStyle(.secondary)
+
+                Toggle(
+                    "Confirm allergen information",
+                    isOn: $viewModel.allergensConfirmed
+                )
+                .accessibilityHint(
+                    "Confirm the available allergen information has been reviewed."
+                )
+            } header: {
+                Text("Allergen Check")
+            }
+
+            Section("Handling Information") {
+                LabeledContent(
+                    "Recorded start",
+                    value: batch.holdWindow.startedAt.formatted(
+                        date: .abbreviated,
+                        time: .shortened
+                    )
+                )
+
+                Text("Handling history requires verification.")
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+            }
+
+            Section {
+                Button("Record Safety Check") {
+                    // Connected after validation rules are agreed.
+                }
+                .buttonStyle(.primary)
+                .disabled(!viewModel.canSubmit)
+            } footer: {
+                Text(
+                    "Recording is unavailable until safety validation is implemented."
+                )
+            }
+        }
+    }
+
+    private func allergenSummary(
+        for batch: FoodBatch
+    ) -> String {
+        guard batch.allergensDeclared else {
+            return "Allergen information has not been declared."
+        }
+
+        guard !batch.allergens.isEmpty else {
+            return "No allergens declared."
+        }
+
+        let names = batch.allergens
+            .map(\.displayName)
+            .sorted()
+            .joined(separator: ", ")
+
+        return "Declared allergens: \(names)"
+    }
+}
