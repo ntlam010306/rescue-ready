@@ -58,4 +58,55 @@ struct RecordSafetyCheckUseCaseTests {
             now.addingTimeInterval(-3600)
         )
     }
+    
+    // MARK: - Repository Tests
+
+    @Test
+    func loadsExistingBatchSuccessfully() async throws {
+        let batch = try makeBatch()
+
+        let store = InMemoryDataStore()
+        store.batches[batch.id] = batch
+
+        let repository = InMemoryBatchRepository(store: store)
+
+        let useCase = RecordSafetyCheckUseCase(
+            batches: repository,
+            now: { now }
+        )
+
+        let result = try await useCase.loadBatch(id: batch.id)
+
+        #expect(result == batch)
+    }
+
+    @Test
+    func rejectsUnknownBatch() async {
+        let repository = InMemoryBatchRepository()
+
+        let useCase = RecordSafetyCheckUseCase(
+            batches: repository,
+            now: { now }
+        )
+
+        await #expect(throws: DomainError.batchNotFound) {
+            try await useCase.loadBatch(id: Identifier<FoodBatch>())
+        }
+    }
+
+    @Test
+    func mapsRepositoryFailureToDomainError() async {
+        let repository = InMemoryBatchRepository()
+        repository.shouldFail = true
+
+        let useCase = RecordSafetyCheckUseCase(
+            batches: repository,
+            now: { now }
+        )
+
+        await #expect(throws: DomainError.storageFailure) {
+            try await useCase.loadBatch(id: Identifier<FoodBatch>())
+        }
+    }
 }
+
