@@ -80,10 +80,6 @@ final class HandoverViewModel {
             && !isWorking && !isFinished
     }
 
-    var timeRemaining: TimeInterval {
-        batch.holdWindow.remaining(at: now())
-    }
-
     // MARK: - Actions
 
     func load() async {

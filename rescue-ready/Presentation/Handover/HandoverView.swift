@@ -55,7 +55,7 @@ struct HandoverView: View {
 
     private var form: some View {
         Form {
-            BatchSummarySection(batch: viewModel.batch, timeRemaining: viewModel.timeRemaining)
+            BatchSummarySection(batch: viewModel.batch)
 
             if let reason = viewModel.handoverBlockedReason {
                 Section {
@@ -195,7 +195,6 @@ struct HandoverView: View {
 
 private struct BatchSummarySection: View {
     let batch: FoodBatch
-    let timeRemaining: TimeInterval
 
     var body: some View {
         Section("Batch") {
@@ -212,9 +211,13 @@ private struct BatchSummarySection: View {
             .accessibilityElement(children: .combine)
 
             if batch.status.isOpen {
-                LabeledContent("Safe hold time left") {
-                    Text(timeRemainingText)
-                        .foregroundStyle(timeRemaining > 0 ? Color.secondary : Color.red)
+                // Redraws every minute so the countdown stays current while the screen is open.
+                TimelineView(.periodic(from: .now, by: 60)) { context in
+                    let remaining = batch.holdWindow.remaining(at: context.date)
+                    LabeledContent("Safe hold time left") {
+                        Text(Self.timeRemainingText(remaining))
+                            .foregroundStyle(remaining > 0 ? Color.secondary : Color.red)
+                    }
                 }
             }
 
@@ -222,9 +225,9 @@ private struct BatchSummarySection: View {
         }
     }
 
-    private var timeRemainingText: String {
-        guard timeRemaining > 0 else { return "Expired" }
-        return Duration.seconds(timeRemaining)
+    private static func timeRemainingText(_ remaining: TimeInterval) -> String {
+        guard remaining > 0 else { return "Expired" }
+        return Duration.seconds(remaining)
             .formatted(.units(allowed: [.hours, .minutes], width: .abbreviated))
     }
 
