@@ -28,14 +28,14 @@ final class AppContainer {
         if persistence.isAvailable {
             eventRepository = CoreDataEventRepository(container: persistence.container)
             pickupRepository = CoreDataPickupRepository(container: persistence.container)
+            batchRepository = CoreDataBatchRepository(container: persistence.container)
+            dropPointRepository = CoreDataDropPointRepository(container: persistence.container)
         } else {
             eventRepository = InMemoryEventRepository(store: fallbackStore)
             pickupRepository = InMemoryPickupRepository(store: fallbackStore)
+            batchRepository = InMemoryBatchRepository(store: fallbackStore)
+            dropPointRepository = InMemoryDropPointRepository(store: fallbackStore)
         }
-
-        // TODO(persistence): replace with CoreDataBatchRepository and CoreDataDropPointRepository.
-        batchRepository = InMemoryBatchRepository(store: fallbackStore)
-        dropPointRepository = InMemoryDropPointRepository(store: fallbackStore)
 
         // TODO(platform): replace with the UserNotifications-backed scheduler.
         notificationScheduler = InMemoryNotificationScheduler()
