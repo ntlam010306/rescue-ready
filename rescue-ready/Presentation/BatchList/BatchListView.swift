@@ -93,7 +93,7 @@ private struct BatchRow: View {
     private var timeText: String {
         guard timeRemaining > 0 else { return "Expired" }
         let left = Duration.seconds(timeRemaining)
-            .formatted(.units(allowed: [.hours, .minutes], width: .abbreviated))
+            .formatted(.units(allowed: [.hours, .minutes], width: .narrow))
         return "\(left) left"
     }
 
