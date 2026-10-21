@@ -5,35 +5,49 @@ import Testing
 
 struct CoreDataDropPointRepositoryTests {
     let controller = PersistenceController(inMemory: true)
-    let now = Date(timeIntervalSince1970: 1_800_000_000)
 
     var repository: CoreDataDropPointRepository {
         CoreDataDropPointRepository(container: controller.container)
     }
 
-    @Test func allReturnsDropPointsSortedByName() async throws {
-        try await CoreDataSeeder.seedIfEmpty(controller.container, now: now)
+    /// Stores drop points directly, so the tests don't depend on the sample data.
+    private func insert(_ dropPoints: [DropPoint]) async throws {
+        try await controller.container.performBackground(failure: .saveFailed) { context in
+            for dropPoint in dropPoints {
+                DropPointEntity(context: context).update(from: dropPoint)
+            }
+            try context.save()
+        }
+    }
+
+    private func makeDropPoint(_ name: String, hours: ClosedRange<Int> = 8...20) -> DropPoint {
+        DropPoint(id: Identifier(), name: name, address: "1 Test St, Sydney NSW 2000", openingHours: hours)
+    }
+
+    @Test func allReturnsEveryDropPointSortedByName() async throws {
+        let zeta = makeDropPoint("Zeta Kitchen")
+        let alpha = makeDropPoint("Alpha Pantry")
+        let beta = makeDropPoint("Beta Meals")
+        try await insert([zeta, alpha, beta])
 
         let dropPoints = try await repository.all()
 
-        #expect(dropPoints.count == 2)
-        #expect(dropPoints.map(\.name) == dropPoints.map(\.name).sorted())
+        #expect(dropPoints.map(\.id) == [alpha.id, beta.id, zeta.id])
     }
 
     @Test func dropPointKeepsItsOpeningHours() async throws {
-        try await CoreDataSeeder.seedIfEmpty(controller.container, now: now)
-        let all = try await repository.all()
-        let first = try #require(all.first)
+        let pantry = makeDropPoint("Redfern Community Kitchen", hours: 7...21)
+        try await insert([pantry])
 
-        let fetched = try await repository.dropPoint(id: first.id)
+        let fetched = try await repository.dropPoint(id: pantry.id)
         let stored = try #require(fetched)
 
-        #expect(stored == first)
-        #expect(stored.openingHours == first.openingHours)
+        #expect(stored == pantry)
+        #expect(stored.openingHours == 7...21)
     }
 
     @Test func unknownDropPointReturnsNil() async throws {
-        try await CoreDataSeeder.seedIfEmpty(controller.container, now: now)
+        try await insert([makeDropPoint("Redfern Community Kitchen")])
 
         let missing = try await repository.dropPoint(id: Identifier())
 

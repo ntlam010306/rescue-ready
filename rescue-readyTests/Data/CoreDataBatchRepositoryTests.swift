@@ -12,30 +12,38 @@ struct CoreDataBatchRepositoryTests {
         CoreDataBatchRepository(container: controller.container)
     }
 
-    /// Seeds the sample data, then saves a pickup with three batches whose hold windows
-    /// start at different times. Returns the new batches and the seeded drop points.
-    private func makeFixture() async throws -> (early: FoodBatch, late: FoodBatch, discarded: FoodBatch,
-                                                dropPoints: [DropPoint]) {
-        try await CoreDataSeeder.seedIfEmpty(controller.container, now: now)
+    /// Stores an event, volunteer and drop point, then a pickup with four batches whose
+    /// hold windows start at different times. Builds its own data rather than using the
+    /// sample data, so changes to the sample data can't break these tests.
+    private func makeFixture() async throws -> (early: FoodBatch, late: FoodBatch, failed: FoodBatch,
+                                                discarded: FoodBatch, dropPoint: DropPoint) {
+        let event = Event(id: Identifier(), name: "Test Match", venue: "Test Stadium",
+                          startsAt: now.addingTimeInterval(-4 * hour), endsAt: now.addingTimeInterval(-1 * hour))
+        let volunteer = Volunteer(id: Identifier(), name: "Test Volunteer")
+        let dropPoint = DropPoint(id: Identifier(), name: "Redfern Community Kitchen",
+                                  address: "12 Regent St, Redfern NSW 2016", openingHours: 0...23)
 
-        let activeEvents = try await CoreDataEventRepository(container: controller.container)
-            .events(acceptingPickupsAt: now)
-        let event = try #require(activeEvents.first)
-        let pickup = Pickup(id: Identifier(), eventID: event.id,
-                            volunteerID: SampleData.volunteer.id, collectedAt: now)
+        try await controller.container.performBackground(failure: .saveFailed) { context in
+            EventEntity(context: context).update(from: event)
+            VolunteerEntity(context: context).update(from: volunteer)
+            DropPointEntity(context: context).update(from: dropPoint)
+            try context.save()
+        }
 
+        let pickup = Pickup(id: Identifier(), eventID: event.id, volunteerID: volunteer.id, collectedAt: now)
         let early = try makeBatch("Beef lasagne", pickupID: pickup.id,
                                   startedAt: now.addingTimeInterval(-3 * hour), status: .awaitingCheck)
         let late = try makeBatch("Fruit platter", pickupID: pickup.id,
                                  startedAt: now.addingTimeInterval(-0.25 * hour), status: .cleared)
+        let failed = try makeBatch("Garden salad", pickupID: pickup.id,
+                                   startedAt: now.addingTimeInterval(-1 * hour), status: .failedCheck)
         let discarded = try makeBatch("Prawn rolls", pickupID: pickup.id,
                                       startedAt: now.addingTimeInterval(-2 * hour), status: .discarded)
 
         try await CoreDataPickupRepository(container: controller.container)
-            .save(pickup, batches: [early, late, discarded])
+            .save(pickup, batches: [early, late, failed, discarded])
 
-        let dropPoints = try await CoreDataDropPointRepository(container: controller.container).all()
-        return (early, late, discarded, dropPoints)
+        return (early, late, failed, discarded, dropPoint)
     }
 
     private func makeBatch(_ description: String, pickupID: Identifier<Pickup>,
@@ -57,21 +65,15 @@ struct CoreDataBatchRepositoryTests {
 
         let open = try await repository.openBatches()
 
-        #expect(!open.isEmpty)
-        #expect(open.allSatisfy { $0.status.isOpen })
-        #expect(!open.contains { $0.id == fixture.discarded.id })
-        #expect(open.map(\.holdWindow.expiresAt) == open.map(\.holdWindow.expiresAt).sorted())
-        #expect(open.first?.id == fixture.early.id)
-        #expect(open.last?.id == fixture.late.id)
+        #expect(open.map(\.id) == [fixture.early.id, fixture.failed.id, fixture.late.id])
     }
 
     @Test func batchesWithStatusReturnOnlyThatStatus() async throws {
-        _ = try await makeFixture()
+        let fixture = try await makeFixture()
 
         let failed = try await repository.batches(withStatus: .failedCheck)
 
-        #expect(!failed.isEmpty)
-        #expect(failed.allSatisfy { $0.status == .failedCheck })
+        #expect(failed.map(\.id) == [fixture.failed.id])
     }
 
     @Test func unknownBatchIDReturnsNil() async throws {
@@ -86,7 +88,7 @@ struct CoreDataBatchRepositoryTests {
 
     @Test func handoverIsSavedWithItsDropPoint() async throws {
         let fixture = try await makeFixture()
-        let dropPoint = try #require(fixture.dropPoints.first)
+        let dropPoint = fixture.dropPoint
 
         var handedOver = fixture.late
         handedOver.status = .handedOver
