@@ -3,9 +3,11 @@ import SwiftUI
 /// Open batches, soonest safe hold deadline first, with the time left on each.
 struct BatchListView: View {
     @State private var viewModel: BatchListViewModel
+    private let makeHandoverViewModel: (FoodBatch) -> HandoverViewModel
 
-    init(viewModel: BatchListViewModel) {
+    init(viewModel: BatchListViewModel, makeHandoverViewModel: @escaping (FoodBatch) -> HandoverViewModel) {
         _viewModel = State(initialValue: viewModel)
+        self.makeHandoverViewModel = makeHandoverViewModel
     }
 
     var body: some View {
@@ -51,7 +53,14 @@ struct BatchListView: View {
                 // Redraws every minute so the time left stays current while the screen is open.
                 TimelineView(.periodic(from: .now, by: 60)) { context in
                     ForEach(viewModel.batches) { item in
-                        BatchRow(batch: item.batch, timeRemaining: item.batch.holdWindow.remaining(at: context.date))
+                        NavigationLink {
+                            // Reload when done so the handed over or discarded batch leaves the list.
+                            HandoverView(viewModel: makeHandoverViewModel(item.batch)) {
+                                Task { await viewModel.load() }
+                            }
+                        } label: {
+                            BatchRow(batch: item.batch, timeRemaining: item.batch.holdWindow.remaining(at: context.date))
+                        }
                     }
                 }
             }
@@ -78,9 +87,13 @@ private struct BatchRow: View {
             HStack {
                 StatusBadge(status: batch.status)
                 Spacer()
-                Label(timeText, systemImage: timeSymbol)
-                    .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(timeColor)
+                // Only the icon is tinted so the text keeps enough contrast in Light Mode.
+                Label {
+                    Text(timeText)
+                } icon: {
+                    Image(systemName: timeSymbol).foregroundStyle(timeColor)
+                }
+                .font(.subheadline.weight(.semibold))
             }
         }
         .padding(.vertical, 4)
@@ -133,11 +146,13 @@ private struct NotificationsDeniedBanner: View {
 // MARK: - Previews
 
 #Preview("Batches") {
-    BatchListView(viewModel: .preview())
+    let container = AppContainer.preview()
+    BatchListView(viewModel: .preview(), makeHandoverViewModel: container.makeHandoverViewModel)
 }
 
 #Preview("Alerts off") {
-    BatchListView(viewModel: .preview(permission: .denied))
+    let container = AppContainer.preview()
+    BatchListView(viewModel: .preview(permission: .denied), makeHandoverViewModel: container.makeHandoverViewModel)
         .preferredColorScheme(.dark)
 }
 
