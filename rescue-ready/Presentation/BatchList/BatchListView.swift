@@ -50,22 +50,43 @@ struct BatchListView: View {
                 )
                 .listRowBackground(Color.clear)
             } else {
-                // Redraws every minute so the time left stays current while the screen is open.
-                TimelineView(.periodic(from: .now, by: 60)) { context in
-                    ForEach(viewModel.batches) { item in
-                        NavigationLink {
-                            // Reload when done so the handed over or discarded batch leaves the list.
-                            HandoverView(viewModel: makeHandoverViewModel(item.batch)) {
-                                Task { await viewModel.load() }
-                            }
-                        } label: {
-                            BatchRow(batch: item.batch, timeRemaining: item.batch.holdWindow.remaining(at: context.date))
-                        }
+                let expired = viewModel.batches.filter(\.hasExpired)
+                let active = viewModel.batches.filter { !$0.hasExpired }
+
+                if !expired.isEmpty {
+                    Section {
+                        rows(expired)
+                    } header: {
+                        Text("Expired")
+                    } footer: {
+                        Text("These are past their safe hold time. Discard them.")
+                    }
+                }
+                if !active.isEmpty {
+                    Section("Open") {
+                        rows(active)
                     }
                 }
             }
         }
+        .listStyle(.insetGrouped)
         .refreshable { await viewModel.load() }
+    }
+
+    private func rows(_ items: [ExpiringBatch]) -> some View {
+        ForEach(items) { item in
+            NavigationLink {
+                // Reload when done so the handed over or discarded batch leaves the list.
+                HandoverView(viewModel: makeHandoverViewModel(item.batch)) {
+                    Task { await viewModel.load() }
+                }
+            } label: {
+                // Redraws every minute so the time left stays current while the screen is open.
+                TimelineView(.periodic(from: .now, by: 60)) { context in
+                    BatchRow(batch: item.batch, timeRemaining: item.batch.holdWindow.remaining(at: context.date))
+                }
+            }
+        }
     }
 }
 
@@ -76,27 +97,36 @@ private struct BatchRow: View {
     let timeRemaining: TimeInterval
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            HStack(alignment: .firstTextBaseline) {
-                Text(batch.foodDescription)
-                    .font(.headline)
-                Spacer()
-                Text(batch.weight.kilograms.kilogramsText)
-                    .foregroundStyle(.secondary)
-            }
-            HStack {
-                StatusBadge(status: batch.status)
-                Spacer()
-                // Only the icon is tinted so the text keeps enough contrast in Light Mode.
-                Label {
-                    Text(timeText)
-                } icon: {
-                    Image(systemName: timeSymbol).foregroundStyle(timeColor)
+        HStack(spacing: 12) {
+            Image(systemName: timeSymbol)
+                .font(.title3)
+                .foregroundStyle(timeColor)
+                .frame(width: 40, height: 40)
+                .background(timeColor.opacity(0.15), in: Circle())
+
+            VStack(alignment: .leading, spacing: 6) {
+                HStack(alignment: .firstTextBaseline) {
+                    Text(batch.foodDescription)
+                        .font(.headline)
+                    Spacer()
+                    Text(batch.weight.kilograms.kilogramsText)
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
                 }
-                .font(.subheadline.weight(.semibold))
+                HStack {
+                    StatusBadge(status: batch.status)
+                        .lineLimit(1)
+                        .layoutPriority(1)
+                    Spacer()
+                    // Text stays in the primary colour so it keeps enough contrast in Light Mode.
+                    Text(timeText)
+                        .font(.subheadline.weight(.semibold))
+                        .monospacedDigit()
+                        .lineLimit(1)
+                }
             }
         }
-        .padding(.vertical, 4)
+        .padding(.vertical, 6)
         .frame(minHeight: 44)
         .accessibilityElement(children: .combine)
     }
