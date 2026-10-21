@@ -38,7 +38,7 @@ final class AppContainer {
         }
 
         // TODO(platform): replace with the UserNotifications-backed scheduler.
-        notificationScheduler = InMemoryNotificationScheduler()
+        notificationScheduler = UNNotificationScheduler()
     }
 
     /// Seeds an empty store with sample data so the app has content on first launch.
