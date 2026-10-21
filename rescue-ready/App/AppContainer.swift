@@ -49,6 +49,13 @@ final class AppContainer {
 
     // MARK: - ViewModel factories
 
+    func makeBatchListViewModel() -> BatchListViewModel {
+        BatchListViewModel(
+            fetchExpiringBatches: FetchExpiringBatchesUseCase(batches: batchRepository, now: now),
+            notifications: notificationScheduler
+        )
+    }
+
     func makePickupViewModel() -> PickupViewModel {
         PickupViewModel(
             logPickup: LogPickupUseCase(events: eventRepository, pickups: pickupRepository, now: now),
