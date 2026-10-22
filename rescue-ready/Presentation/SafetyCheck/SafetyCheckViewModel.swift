@@ -36,6 +36,14 @@ final class SafetyCheckViewModel {
     // User inputs
     var temperatureInput: String = ""
     var allergensConfirmed: Bool = false
+    
+    
+    // Total cumulative time spent in the temperature danger zone.
+    var dangerZoneMinutesInput: String = ""
+
+    // Volunteer confirms the complete handling history.
+    var handlingHistoryConfirmed: Bool = false
+
 
     private let recordSafetyCheck: RecordSafetyCheckUseCase
     private let batchID: Identifier<FoodBatch>
@@ -50,44 +58,57 @@ final class SafetyCheckViewModel {
 
     var canSubmit: Bool {
 
-        // The batch must be loaded successfully.
+        // 1. Batch must be loaded and awaiting check.
         guard loadState == .loaded,
-              let batch else {
+              let batch,
+              batch.status == .awaitingCheck else {
             return false
         }
 
-        // Only batches awaiting their first check are eligible.
-        guard batch.status == .awaitingCheck else {
-            return false
-        }
-
-        // Allergen information must be declared and confirmed.
+        // 2. Allergen information must be confirmed.
         guard batch.allergensDeclared,
               allergensConfirmed else {
             return false
         }
 
-        // Never enable recording without an assessor.
+        // 3. A safety assessor must be configured.
         guard recordSafetyCheck.assessor != nil else {
             return false
         }
 
-        // Prevent submissions while saving or after recording.
+        // 4. Prevent duplicate submissions.
         guard saveState != .saving,
               saveState != .saved else {
             return false
         }
 
-        // Validate the temperature input.
-        let text = temperatureInput.trimmingCharacters(
-            in: .whitespacesAndNewlines
-        )
+        // 5. Validate temperature input.
+        let temperatureText = temperatureInput
+            .trimmingCharacters(in: .whitespacesAndNewlines)
 
-        guard let temperature = Double(text) else {
+        guard let temperature = Double(temperatureText),
+              temperature.isFinite,
+              Temperature.plausibleRange.contains(temperature) else {
             return false
         }
 
-        return Temperature.plausibleRange.contains(temperature)
+        // 6. Validate cumulative danger-zone duration.
+        let minutesText = dangerZoneMinutesInput
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+
+        guard let minutes = Double(minutesText),
+              minutes.isFinite,
+              minutes >= 0,
+              minutes <= Double.greatestFiniteMagnitude / 60 else {
+            return false
+        }
+
+        // 7. Complete handling history must be verified.
+        guard handlingHistoryConfirmed else {
+            return false
+        }
+
+        return true
     }
 
     func load() async {
@@ -134,10 +155,18 @@ final class SafetyCheckViewModel {
         saveState = .saving
 
         do {
+            let minutes = Double(
+                dangerZoneMinutesInput.trimmingCharacters(
+                    in: .whitespacesAndNewlines
+                )
+            )
+
             let input = SafetyCheckInput(
                 batchID: batch.id,
                 temperatureCelsius: temperature,
-                allergensConfirmed: allergensConfirmed
+                allergensConfirmed: allergensConfirmed,
+                cumulativeDangerZoneSeconds: minutes.map { $0 * 60 },
+                handlingHistoryConfirmed: handlingHistoryConfirmed
             )
 
             let result = try await recordSafetyCheck.execute(input)

@@ -59,21 +59,21 @@ struct SafetyCheckView: View {
 
     private func safetyForm(for batch: FoodBatch) -> some View {
         Form {
-
+            
             Section("Food Batch") {
                 LabeledContent(
                     "Food",
                     value: batch.foodDescription
                 )
-
+                
                 LabeledContent(
                     "Weight",
                     value: "\(batch.weight.kilograms.formatted()) kg"
                 )
-
+                
                 StatusBadge(status: batch.status)
             }
-
+            
             Section {
                 TextField(
                     "Temperature (°C)",
@@ -88,11 +88,11 @@ struct SafetyCheckView: View {
             } footer: {
                 Text("Enter the measured temperature using a food thermometer.")
             }
-
+            
             Section {
                 Text(allergenSummary(for: batch))
                     .foregroundStyle(.secondary)
-
+                
                 Toggle(
                     "Confirm allergen information",
                     isOn: $viewModel.allergensConfirmed
@@ -103,79 +103,100 @@ struct SafetyCheckView: View {
             } header: {
                 Text("Allergen Check")
             }
-
-            Section("Handling Information") {
+            
+            Section {
                 LabeledContent(
-                    "Recorded start",
+                    "Pickup time",
                     value: batch.holdWindow.startedAt.formatted(
                         date: .abbreviated,
                         time: .shortened
                     )
                 )
-
-                Text("Handling history requires verification.")
-                    .font(.footnote)
-                    .foregroundStyle(.secondary)
-            }
-
-            Section {
-
-                Button {
-                    Task {
-                        await viewModel.submit()
-                    }
-                } label: {
-                    if viewModel.saveState == .saving {
-                        ProgressView("Saving Safety Check...")
-                    } else {
-                        Text("Record Safety Check")
-                    }
-                }
-                .buttonStyle(.primary)
-                .disabled(
-                    !viewModel.canSubmit ||
-                    viewModel.saveState == .saving
+                
+                TextField(
+                    "Total danger-zone time (minutes)",
+                    text: $viewModel.dangerZoneMinutesInput
                 )
-
-                // Display the result of the safety check.
-                switch viewModel.saveState {
-
-                case .idle:
-                    EmptyView()
-
-                case .saving:
-                    Text("Recording safety information...")
-                        .foregroundStyle(.secondary)
-
-                case .saved:
-                    Label(
-                        "Safety check recorded successfully.",
-                        systemImage: "checkmark.circle"
-                    )
-
-                case .requiresReview(let reason):
-                    Label(
-                        "Review required: \(reason)",
-                        systemImage: "exclamationmark.triangle"
-                    )
-
-                case .failed(let message):
-                    Label(
-                        message,
-                        systemImage: "exclamationmark.circle"
-                    )
-                }
-
+                .keyboardType(.decimalPad)
+                .accessibilityLabel(
+                    "Cumulative time in the temperature danger zone, in minutes"
+                )
+                
+                Toggle(
+                    "I have verified the complete handling history",
+                    isOn: $viewModel.handlingHistoryConfirmed
+                )
+                
+            } header: {
+                Text("Handling Information")
             } footer: {
-
                 Text(
-                    "Recording remains unavailable until the safety assessment rules are configured."
+                    "Enter the total time food has spent between 5°C and 60°C, including preparation, storage, display and transport. Pickup time alone does not establish the complete handling history."
                 )
             }
-
+            
+            Section {
+                // Keep your existing Submit button
+                // and saveState switch here.
+                
+                Section {
+                    
+                    Button {
+                        Task {
+                            await viewModel.submit()
+                        }
+                    } label: {
+                        if viewModel.saveState == .saving {
+                            ProgressView("Saving Safety Check...")
+                        } else {
+                            Text("Record Safety Check")
+                        }
+                    }
+                    .buttonStyle(.primary)
+                    .disabled(
+                        !viewModel.canSubmit ||
+                        viewModel.saveState == .saving
+                    )
+                    
+                    // Display the result of the safety check.
+                    switch viewModel.saveState {
+                        
+                    case .idle:
+                        EmptyView()
+                        
+                    case .saving:
+                        Text("Recording safety information...")
+                            .foregroundStyle(.secondary)
+                        
+                    case .saved:
+                        Label(
+                            "Safety check recorded successfully.",
+                            systemImage: "checkmark.circle"
+                        )
+                        
+                    case .requiresReview(let reason):
+                        Label(
+                            "Review required: \(reason)",
+                            systemImage: "exclamationmark.triangle"
+                        )
+                        
+                    case .failed(let message):
+                        Label(
+                            message,
+                            systemImage: "exclamationmark.circle"
+                        )
+                    }
+                    
+                } footer: {
+                    
+                    Text(
+                        "Record a check only after verifying the food's temperature, allergens and complete handling history."
+                    )
+                }
+            }
         }
     }
-
+    
     private func allergenSummary(
         for batch: FoodBatch
     ) -> String {

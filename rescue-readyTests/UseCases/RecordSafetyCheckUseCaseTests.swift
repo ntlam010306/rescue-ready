@@ -363,6 +363,7 @@ struct RecordSafetyCheckUseCaseTests {
             func assess(
                 batch: FoodBatch,
                 temperature: Temperature,
+                input: SafetyCheckInput,
                 at checkedAt: Date
             ) -> SafetyAssessment {
                 return .passed
@@ -420,6 +421,7 @@ struct RecordSafetyCheckUseCaseTests {
             func assess(
                 batch: FoodBatch,
                 temperature: Temperature,
+                input: SafetyCheckInput,
                 at checkedAt: Date
             ) -> SafetyAssessment {
                 return .failed(
@@ -488,6 +490,7 @@ struct RecordSafetyCheckUseCaseTests {
             func assess(
                 batch: FoodBatch,
                 temperature: Temperature,
+                input: SafetyCheckInput,
                 at checkedAt: Date
             ) -> SafetyAssessment {
                 return .requiresReview(
@@ -548,6 +551,7 @@ struct RecordSafetyCheckUseCaseTests {
             func assess(
                 batch: FoodBatch,
                 temperature: Temperature,
+                input: SafetyCheckInput,
                 at checkedAt: Date
             ) -> SafetyAssessment {
                 return .passed
@@ -625,6 +629,104 @@ struct RecordSafetyCheckUseCaseTests {
                 error as? DomainError == .storageFailure
             )
         }
+    }
+
+    @Test
+    func foodSafetyAssessorEvaluatesHandlingHistory() throws {
+
+        let now = Date(timeIntervalSince1970: 1_800_000_000)
+
+        let batch = FoodBatch(
+            id: Identifier(),
+            pickupID: Identifier(),
+            foodDescription: "Prepared meals",
+            weight: try Weight(kilograms: 2),
+            allergens: [.milk],
+            allergensDeclared: true,
+            holdWindow: HoldWindow(startedAt: now),
+            status: .awaitingCheck
+        )
+
+        let assessor = FoodSafetyAssessor()
+
+        func evaluate(
+            temperature: Double,
+            seconds: TimeInterval?,
+            confirmed: Bool = true
+        ) throws -> SafetyAssessment {
+
+            let input = SafetyCheckInput(
+                batchID: batch.id,
+                temperatureCelsius: temperature,
+                allergensConfirmed: true,
+                cumulativeDangerZoneSeconds: seconds,
+                handlingHistoryConfirmed: confirmed
+            )
+
+            return assessor.assess(
+                batch: batch,
+                temperature: try Temperature(celsius: temperature),
+                input: input,
+                at: now
+            )
+        }
+
+        // Missing handling history.
+        #expect(
+            try evaluate(temperature: 3, seconds: nil)
+                == .requiresReview(
+                    reason: "Complete handling history must be verified."
+                )
+        )
+
+        // History has not been verified.
+        #expect(
+            try evaluate(
+                temperature: 3,
+                seconds: 1800,
+                confirmed: false
+            ) == .requiresReview(
+                reason: "Complete handling history must be verified."
+            )
+        )
+
+        // Less than two hours, controlled current temperature.
+        #expect(
+            try evaluate(temperature: 3, seconds: 3600)
+                == .passed
+        )
+
+        // Exactly two hours: additional review required.
+        #expect(
+            try evaluate(temperature: 3, seconds: 7200)
+                == .requiresReview(
+                    reason: "Immediate-use conditions require verification."
+                )
+        )
+
+        // Four hours or more: failed.
+        #expect(
+            try evaluate(temperature: 3, seconds: 14400)
+                == .failed(
+                    reason: "Cumulative danger-zone time is four hours or more."
+                )
+        )
+
+        // Current reading in danger zone.
+        #expect(
+            try evaluate(temperature: 20, seconds: 1800)
+                == .requiresReview(
+                    reason: "Current temperature requires handling review."
+                )
+        )
+
+        // Invalid handling duration.
+        #expect(
+            try evaluate(temperature: 3, seconds: -60)
+                == .requiresReview(
+                    reason: "Enter a valid cumulative handling duration."
+                )
+        )
     }
 
 }

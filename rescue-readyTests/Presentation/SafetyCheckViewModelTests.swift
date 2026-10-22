@@ -177,6 +177,7 @@ struct SafetyCheckViewModelTests {
             func assess(
                 batch: FoodBatch,
                 temperature: Temperature,
+                input: SafetyCheckInput,
                 at checkedAt: Date
             ) -> SafetyAssessment {
                 return .passed
@@ -272,6 +273,7 @@ struct SafetyCheckViewModelTests {
             func assess(
                 batch: FoodBatch,
                 temperature: Temperature,
+                input: SafetyCheckInput,
                 at checkedAt: Date
             ) -> SafetyAssessment {
                 return .failed(
@@ -468,6 +470,7 @@ struct SafetyCheckViewModelTests {
             func assess(
                 batch: FoodBatch,
                 temperature: Temperature,
+                input: SafetyCheckInput,
                 at checkedAt: Date
             ) -> SafetyAssessment {
                 return .requiresReview(

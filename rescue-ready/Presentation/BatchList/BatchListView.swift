@@ -4,10 +4,17 @@ import SwiftUI
 struct BatchListView: View {
     @State private var viewModel: BatchListViewModel
     private let makeHandoverViewModel: (FoodBatch) -> HandoverViewModel
+    private let makeSafetyCheckViewModel: (FoodBatch) -> SafetyCheckViewModel
 
-    init(viewModel: BatchListViewModel, makeHandoverViewModel: @escaping (FoodBatch) -> HandoverViewModel) {
+
+    init(
+        viewModel: BatchListViewModel,
+        makeHandoverViewModel: @escaping (FoodBatch) -> HandoverViewModel,
+        makeSafetyCheckViewModel: @escaping (FoodBatch) -> SafetyCheckViewModel
+    ) {
         _viewModel = State(initialValue: viewModel)
         self.makeHandoverViewModel = makeHandoverViewModel
+        self.makeSafetyCheckViewModel = makeSafetyCheckViewModel
     }
 
     var body: some View {
@@ -75,15 +82,27 @@ struct BatchListView: View {
 
     private func rows(_ items: [ExpiringBatch]) -> some View {
         ForEach(items) { item in
+
             NavigationLink {
-                // Reload when done so the handed over or discarded batch leaves the list.
-                HandoverView(viewModel: makeHandoverViewModel(item.batch)) {
-                    Task { await viewModel.load() }
+                if item.batch.status == .awaitingCheck {
+                    SafetyCheckView(
+                        viewModel: makeSafetyCheckViewModel(item.batch)
+                    )
+                } else {
+                    HandoverView(
+                        viewModel: makeHandoverViewModel(item.batch)
+                    ) {
+                        Task { await viewModel.load() }
+                    }
                 }
             } label: {
-                // Redraws every minute so the time left stays current while the screen is open.
                 TimelineView(.periodic(from: .now, by: 60)) { context in
-                    BatchRow(batch: item.batch, timeRemaining: item.batch.holdWindow.remaining(at: context.date))
+                    BatchRow(
+                        batch: item.batch,
+                        timeRemaining: item.batch.holdWindow.remaining(
+                            at: context.date
+                        )
+                    )
                 }
             }
         }
@@ -175,15 +194,26 @@ private struct NotificationsDeniedBanner: View {
 
 // MARK: - Previews
 
+
 #Preview("Batches") {
     let container = AppContainer.preview()
-    BatchListView(viewModel: .preview(), makeHandoverViewModel: container.makeHandoverViewModel)
+
+    BatchListView(
+        viewModel: .preview(),
+        makeHandoverViewModel: container.makeHandoverViewModel,
+        makeSafetyCheckViewModel: container.makeSafetyCheckViewModel
+    )
 }
 
 #Preview("Alerts off") {
     let container = AppContainer.preview()
-    BatchListView(viewModel: .preview(permission: .denied), makeHandoverViewModel: container.makeHandoverViewModel)
-        .preferredColorScheme(.dark)
+
+    BatchListView(
+        viewModel: .preview(permission: .denied),
+        makeHandoverViewModel: container.makeHandoverViewModel,
+        makeSafetyCheckViewModel: container.makeSafetyCheckViewModel
+    )
+    .preferredColorScheme(.dark)
 }
 
 extension BatchListViewModel {

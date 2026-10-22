@@ -21,6 +21,7 @@ protocol SafetyCheckAssessing {
     func assess(
         batch: FoodBatch,
         temperature: Temperature,
+        input: SafetyCheckInput,
         at checkedAt: Date
     ) -> SafetyAssessment
 }
@@ -31,9 +32,33 @@ protocol SafetyCheckAssessing {
 /// the team confirms the food handling requirements.
 /// Input submitted by a volunteer for a safety check.
 struct SafetyCheckInput {
+
     let batchID: Identifier<FoodBatch>
     let temperatureCelsius: Double
     let allergensConfirmed: Bool
+
+    // Total cumulative time spent between 5°C and 60°C,
+    // including preparation, storage, display and transport.
+    let cumulativeDangerZoneSeconds: TimeInterval?
+
+    // Volunteer has verified the complete handling history.
+    let handlingHistoryConfirmed: Bool
+
+    init(
+        batchID: Identifier<FoodBatch>,
+        temperatureCelsius: Double,
+        allergensConfirmed: Bool,
+        cumulativeDangerZoneSeconds: TimeInterval? = nil,
+        handlingHistoryConfirmed: Bool = false
+    ) {
+        self.batchID = batchID
+        self.temperatureCelsius = temperatureCelsius
+        self.allergensConfirmed = allergensConfirmed
+        self.cumulativeDangerZoneSeconds =
+            cumulativeDangerZoneSeconds
+        self.handlingHistoryConfirmed =
+            handlingHistoryConfirmed
+    }
 }
 
 enum SafetyCheckEligibilityError: LocalizedError, Equatable {
@@ -51,6 +76,66 @@ enum SafetyCheckEligibilityError: LocalizedError, Equatable {
 enum SafetyCheckExecutionResult: Equatable {
     case recorded(SafetyCheck)
     case requiresReview(reason: String)
+}
+
+
+/// Evaluates verified temperature-control history.
+///
+/// Applies a conservative version of the 2-hour/4-hour
+/// rule for potentially hazardous food.
+struct FoodSafetyAssessor: SafetyCheckAssessing {
+
+    func assess(
+        batch: FoodBatch,
+        temperature: Temperature,
+        input: SafetyCheckInput,
+        at checkedAt: Date
+    ) -> SafetyAssessment {
+
+        // Never approve food without verified history.
+        guard input.handlingHistoryConfirmed,
+              let duration = input.cumulativeDangerZoneSeconds
+        else {
+            return .requiresReview(
+                reason: "Complete handling history must be verified."
+            )
+        }
+
+        // Reject invalid duration values.
+        guard duration.isFinite, duration >= 0 else {
+            return .requiresReview(
+                reason: "Enter a valid cumulative handling duration."
+            )
+        }
+
+        let twoHours: TimeInterval = 2 * 60 * 60
+        let fourHours: TimeInterval = 4 * 60 * 60
+
+        // Four hours or more: food must not be used.
+        if duration >= fourHours {
+            return .failed(
+                reason: "Cumulative danger-zone time is four hours or more."
+            )
+        }
+
+        // Two to four hours: immediate use only.
+        // Our current app cannot verify immediate-use conditions.
+        if duration >= twoHours {
+            return .requiresReview(
+                reason: "Immediate-use conditions require verification."
+            )
+        }
+
+        // Conservative handling of a current reading
+        // in the temperature danger zone.
+        if temperature.isInDangerZone {
+            return .requiresReview(
+                reason: "Current temperature requires handling review."
+            )
+        }
+
+        return .passed
+    }
 }
 
 struct RecordSafetyCheckUseCase {
@@ -246,6 +331,7 @@ struct RecordSafetyCheckUseCase {
         let assessment = assessor.assess(
             batch: prepared.batch,
             temperature: prepared.temperature,
+            input: input,
             at: now()
         )
 
