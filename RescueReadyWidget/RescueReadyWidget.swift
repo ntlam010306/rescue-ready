@@ -3,7 +3,7 @@ import SwiftUI
 
 /// One open batch as the widget shows it.
 struct WidgetBatch: Identifiable {
-    let id = UUID()
+    var id = UUID()
     let foodDescription: String
     let weightText: String
     let expiresAt: Date
@@ -24,12 +24,25 @@ struct Provider: TimelineProvider {
     }
 
     func getSnapshot(in context: Context, completion: @escaping (BatchEntry) -> Void) {
-        completion(BatchEntry(date: .now, batches: loadBatches(now: .now)))
+        // The widget gallery shows sample batches so people can see what it looks like.
+        if context.isPreview {
+            completion(placeholder(in: context))
+            return
+        }
+        Task {
+            completion(BatchEntry(date: .now, batches: await loadBatches(now: .now)))
+        }
     }
 
     func getTimeline(in context: Context, completion: @escaping (Timeline<BatchEntry>) -> Void) {
-        let now = Date.now
-        let batches = loadBatches(now: now)
+        Task {
+            let now = Date.now
+            let batches = await loadBatches(now: now)
+            completion(timeline(for: batches, now: now))
+        }
+    }
+
+    private func timeline(for batches: [WidgetBatch], now: Date) -> Timeline<BatchEntry> {
 
         // One entry now, plus one each time a batch expires or hits the 30 minute mark,
         // so the widget changes colour and shows "Expired" on time.
@@ -37,13 +50,19 @@ struct Provider: TimelineProvider {
             .filter { $0 > now }
         let entries = ([now] + changeDates).sorted().map { BatchEntry(date: $0, batches: batches) }
 
-        completion(Timeline(entries: entries, policy: .after(now.addingTimeInterval(15 * 60))))
+        return Timeline(entries: entries, policy: .after(now.addingTimeInterval(15 * 60)))
     }
 
-    // TODO(widget): read open batches from the shared App Group store once the
-    // shared files are in the widget target.
-    private func loadBatches(now: Date) -> [WidgetBatch] {
-        WidgetBatch.samples(now: now)
+    /// Reads open batches from the Core Data store the app shares through the App Group.
+    /// Shows nothing rather than failing if the store can't be read.
+    private func loadBatches(now: Date) async -> [WidgetBatch] {
+        let persistence = PersistenceController()
+        guard persistence.isAvailable else { return [] }
+
+        let fetch = FetchExpiringBatchesUseCase(batches: CoreDataBatchRepository(container: persistence.container),
+                                                now: { now })
+        let expiring = (try? await fetch.execute()) ?? []
+        return expiring.map { WidgetBatch($0.batch) }
     }
 }
 
@@ -182,10 +201,19 @@ struct RescueReadyWidget: Widget {
     }
 }
 
+extension WidgetBatch {
+    init(_ batch: FoodBatch) {
+        self.init(id: batch.id.rawValue,
+                  foodDescription: batch.foodDescription,
+                  weightText: "\(batch.weight.kilograms.formatted(.number.precision(.fractionLength(0...1)))) kg",
+                  expiresAt: batch.holdWindow.expiresAt)
+    }
+}
+
 // MARK: - Sample data
 
 extension WidgetBatch {
-    /// Sample batches for previews and until the shared store is connected.
+    /// Sample batches for previews and the widget gallery.
     static func samples(now: Date) -> [WidgetBatch] {
         [
             WidgetBatch(foodDescription: "Chicken skewers", weightText: "5.5 kg", expiresAt: now.addingTimeInterval(20 * 60)),
