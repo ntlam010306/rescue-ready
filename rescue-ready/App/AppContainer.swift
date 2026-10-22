@@ -37,7 +37,6 @@ final class AppContainer {
             dropPointRepository = InMemoryDropPointRepository(store: fallbackStore)
         }
 
-        // TODO(platform): replace with the UserNotifications-backed scheduler.
         notificationScheduler = UNNotificationScheduler()
     }
 
