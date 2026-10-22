@@ -21,7 +21,8 @@ struct RootView: View {
 
     private var tabs: some View {
         TabView {
-            BatchListView(viewModel: container.makeBatchListViewModel())
+            BatchListView(viewModel: container.makeBatchListViewModel(),
+                          makeHandoverViewModel: container.makeHandoverViewModel)
                 .tabItem { Label("Batches", systemImage: "tray.full") }
 
             PickupLogView(viewModel: container.makePickupViewModel())
