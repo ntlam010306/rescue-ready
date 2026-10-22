@@ -153,19 +153,48 @@ private struct BatchRow: View {
     private var isUrgent: Bool { timeRemaining < 30 * 60 }
 
     private var timeText: String {
-        guard timeRemaining > 0 else { return "Expired" }
+        if batch.status == .failedCheck {
+            return "Do not hand over"
+        }
+
+        guard timeRemaining > 0 else {
+            return "Expired"
+        }
+
         let left = Duration.seconds(timeRemaining)
-            .formatted(.units(allowed: [.hours, .minutes], width: .narrow))
+            .formatted(
+                .units(
+                    allowed: [.hours, .minutes],
+                    width: .narrow
+                )
+            )
+
         return "\(left) left"
     }
 
     private var timeSymbol: String {
-        if timeRemaining <= 0 { return "xmark.circle" }
-        return isUrgent ? "exclamationmark.triangle" : "timer"
+        if batch.status == .failedCheck {
+            return "xmark.circle"
+        }
+
+        if timeRemaining <= 0 {
+            return "xmark.circle"
+        }
+
+        return isUrgent
+            ? "exclamationmark.triangle"
+            : "timer"
     }
 
     private var timeColor: Color {
-        if timeRemaining <= 0 { return .red }
+        if batch.status == .failedCheck {
+            return .red
+        }
+
+        if timeRemaining <= 0 {
+            return .red
+        }
+
         return isUrgent ? .orange : .secondary
     }
 }

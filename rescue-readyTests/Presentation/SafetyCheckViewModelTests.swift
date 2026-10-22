@@ -563,9 +563,14 @@ struct SafetyCheckViewModelTests {
 
         #expect(viewModel.canSubmit == false)
 
+
         // MARK: - 5. Valid Inputs
 
         viewModel.allergensConfirmed = true
+
+        // Provide complete handling information.
+        viewModel.dangerZoneMinutesInput = "30"
+        viewModel.handlingHistoryConfirmed = true
 
         // All submission requirements are now satisfied.
         #expect(viewModel.canSubmit == true)
