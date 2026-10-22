@@ -73,7 +73,17 @@ final class SafetyCheckViewModel {
     }
 
     private static func message(for error: Error) -> String {
-        let domainError = (error as? DomainError) ?? .storageFailure
-        return domainError.errorDescription ?? "An unexpected error occurred."
+
+        if let domainError = error as? DomainError {
+            return domainError.errorDescription
+                ?? "An unexpected error occurred."
+        }
+
+        if let eligibilityError = error as? SafetyCheckEligibilityError {
+            return eligibilityError.errorDescription
+                ?? "This batch cannot be checked again."
+        }
+
+        return "An unexpected error occurred."
     }
 }
