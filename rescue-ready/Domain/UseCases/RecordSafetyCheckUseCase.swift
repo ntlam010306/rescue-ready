@@ -7,6 +7,25 @@
 
 import Foundation
 
+
+/// Result of evaluating food handling information.
+enum SafetyAssessment: Equatable {
+    case passed
+    case failed(reason: String)
+    case requiresReview(reason: String)
+}
+
+/// Contract for evaluating a batch's safety information.
+/// Concrete rules must be verified before implementation.
+protocol SafetyCheckAssessing {
+    func assess(
+        batch: FoodBatch,
+        temperature: Temperature,
+        at checkedAt: Date
+    ) -> SafetyAssessment
+}
+
+
 /// Handles the domain workflow for recording a food batch safety check.
 /// Safety validation rules will be implemented after
 /// the team confirms the food handling requirements.
@@ -28,7 +47,28 @@ enum SafetyCheckEligibilityError: LocalizedError, Equatable {
     }
 }
 
+
+enum SafetyCheckExecutionResult: Equatable {
+    case recorded(SafetyCheck)
+    case requiresReview(reason: String)
+}
+
 struct RecordSafetyCheckUseCase {
+    
+    /// Evaluates food handling information.
+    /// Nil until the team approves the safety rules.
+    let assessor: (any SafetyCheckAssessing)?
+
+    init(
+        batches: any BatchRepository,
+        now: @escaping () -> Date,
+        assessor: (any SafetyCheckAssessing)? = nil
+    ) {
+        self.batches = batches
+        self.now = now
+        self.assessor = assessor
+    }
+
 
     let batches: any BatchRepository
 
@@ -141,5 +181,95 @@ struct RecordSafetyCheckUseCase {
         )
 
         return (batch, temperature)
+    }
+    
+    /// Persists an evaluated safety outcome and updates
+    /// the corresponding batch status atomically.
+    ///
+    /// This method does not evaluate food safety.
+    /// It must only be called after domain validation.
+    private func persistOutcome(
+        for batch: FoodBatch,
+        temperature: Temperature,
+        outcome: SafetyOutcome
+    ) async throws -> SafetyCheck {
+
+        var updatedBatch = batch
+
+        switch outcome {
+        case .passed:
+            updatedBatch.status = .cleared
+
+        case .failed:
+            updatedBatch.status = .failedCheck
+        }
+
+        let check = SafetyCheck(
+            id: Identifier(),
+            batchID: batch.id,
+            temperature: temperature,
+            checkedAt: now(),
+            outcome: outcome
+        )
+
+        do {
+            try await batches.record(
+                check,
+                updating: updatedBatch
+            )
+        } catch {
+            throw DomainError.storageFailure
+        }
+
+        return check
+    }
+    
+    /// Executes a safety check using the configured assessor.
+    ///
+    /// Input validation runs first. Only an assessor's passed
+    /// or failed decision can produce a recorded outcome.
+    func execute(
+        _ input: SafetyCheckInput
+    ) async throws -> SafetyCheckExecutionResult {
+
+        // 1. Validate input and batch eligibility.
+        let prepared = try await prepareCheck(input)
+
+        // 2. Do not approve food without assessment rules.
+        guard let assessor else {
+            return .requiresReview(
+                reason: "Safety assessment rules have not been configured."
+            )
+        }
+
+        // 3. Evaluate the batch using the injected assessor.
+        let assessment = assessor.assess(
+            batch: prepared.batch,
+            temperature: prepared.temperature,
+            at: now()
+        )
+
+        // 4. Handle the assessment result.
+        switch assessment {
+
+        case .passed:
+            let check = try await persistOutcome(
+                for: prepared.batch,
+                temperature: prepared.temperature,
+                outcome: .passed
+            )
+            return .recorded(check)
+
+        case .failed(let reason):
+            let check = try await persistOutcome(
+                for: prepared.batch,
+                temperature: prepared.temperature,
+                outcome: .failed(reason: reason)
+            )
+            return .recorded(check)
+
+        case .requiresReview(let reason):
+            return .requiresReview(reason: reason)
+        }
     }
 }

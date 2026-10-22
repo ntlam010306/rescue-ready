@@ -119,16 +119,60 @@ struct SafetyCheckView: View {
             }
 
             Section {
-                Button("Record Safety Check") {
-                    // Connected after validation rules are agreed.
+
+                Button {
+                    Task {
+                        await viewModel.submit()
+                    }
+                } label: {
+                    if viewModel.saveState == .saving {
+                        ProgressView("Saving Safety Check...")
+                    } else {
+                        Text("Record Safety Check")
+                    }
                 }
                 .buttonStyle(.primary)
-                .disabled(!viewModel.canSubmit)
+                .disabled(
+                    !viewModel.canSubmit ||
+                    viewModel.saveState == .saving
+                )
+
+                // Display the result of the safety check.
+                switch viewModel.saveState {
+
+                case .idle:
+                    EmptyView()
+
+                case .saving:
+                    Text("Recording safety information...")
+                        .foregroundStyle(.secondary)
+
+                case .saved:
+                    Label(
+                        "Safety check recorded successfully.",
+                        systemImage: "checkmark.circle"
+                    )
+
+                case .requiresReview(let reason):
+                    Label(
+                        "Review required: \(reason)",
+                        systemImage: "exclamationmark.triangle"
+                    )
+
+                case .failed(let message):
+                    Label(
+                        message,
+                        systemImage: "exclamationmark.circle"
+                    )
+                }
+
             } footer: {
+
                 Text(
-                    "Recording is unavailable until safety validation is implemented."
+                    "Recording remains unavailable until the safety assessment rules are configured."
                 )
             }
+
         }
     }
 
